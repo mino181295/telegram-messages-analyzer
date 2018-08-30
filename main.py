@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+import csv
 import sys
 import glob
 import argparse
 
-from utils.html import TelegramHTMLAdapter as ta
+from utils.html import TelegramAdapter as ta
 from utils.html import HTMLUtility
 from utils.files import FileUtility
+from utils.date import DateUtility
+
 
 from message import Message
 
@@ -45,27 +48,39 @@ def main():
         else :
             html_dict[html_filename] = html_helper
     print("Found", len(html_dict), "files.")
-
     messages = []
+
     for filename, html_helper in html_dict.items():
-        print("Parsing " + filename + "..")
-        messages_elements = html_helper.soup.findAll(ta.MESSAGE_ELEMENT, { "class": ta.MESSAGE_CLASS.split(" ") })
-        
+        print("Extracting messages from " + filename + "..")
+        messages_elements = html_helper.soup.find_all(ta.MESSAGE_ELEMENT, class_=ta.MESSAGE_CLASS)
         for message_el in messages_elements:
-            id = message_el.get('id')
-            ts = message_el.find('div', { "class": "pull_right date details".split(" ")}).get('title')
-            
-            user_el= message_el.find('div', { "class": "from_name"})
-            user = None if user_el is None else user_el.text
+            try:
+                id = message_el.get('id').replace("message", "")
+                ts = message_el.find(ta.TIMESTAMP_ELEMENT, class_=ta.TIMESTAMP_CLASS).get('title')
+                ts = int(DateUtility.string_to_timestamp(ts, ta.TIMESTAMP_FORMAT))
+                user = message_el.find(ta.USER_ELEMENT, class_=ta.USER_CLASS).text.strip()
+                text = message_el.find(ta.TEXT_ELEMENT, class_=ta.TEXT_CLASS).text.strip()
 
-            text_el= message_el.find('div', { "class": "text"})
-            txt = None if text_el is None else text_el.text
+                messages.append(Message(id, ts, user, text))
+            except Exception:
+                pass
+    print("Extracted", len(messages), "plain messages.")
 
-            if not ((id is None) or (ts is None) or (user is None) or (txt is None)):
-                messages.append(Message(id, ts, user, txt))
+    # Sorting the messages by ts
+    messages.sort(key=lambda m: m.ts)
+    print("Sorted", len(messages), " messages.")
 
-        print("Extracted", len(messages), "plain messages.")
+    # Creating a result csv file with all messages
+    print("Creating the result file..")
+    FileUtility.create_directory('result')
+    with open("result/messages.csv", "w", encoding="utf8") as messages_csv:
+        csv_writer = csv.writer(messages_csv)
+        csv_writer.writerow(['id', 'timestamp', 'user', 'text'])
+        for message in messages:
+            csv_writer.writerow([message.id, message.ts, message.user, message.text])
+    print("Created result file.")
 
+    
     sys.exit(0)
 
 if __name__ == "__main__":
