@@ -4,12 +4,12 @@ import csv
 import sys
 import glob
 import argparse
+import configparser
 
 from utils.html import TelegramAdapter as ta
 from utils.html import HTMLUtility
 from utils.files import FileUtility
 from utils.date import DateUtility
-
 
 from message import Message
 
@@ -30,6 +30,10 @@ def main():
     parser.add_argument('-t','--type', help='The type of analysis', required=False, choices=["USER", "WORD", "DOW", "*"], default="*")
     
     args = parser.parse_args()
+
+    # Configuration file
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.readfp(open('config.props'))
 
     # Opening and parsing a html files from args.path
     html_dict = {}
@@ -72,9 +76,11 @@ def main():
 
     # Creating a result csv file with all messages
     print("Creating the result file..")
-    FileUtility.create_directory('result')
-    with open("result/messages.csv", "w", encoding="utf8") as messages_csv:
-        csv_writer = csv.writer(messages_csv)
+    FileUtility.create_directory(config.get('DEFAULT', 'result_folder'))
+    directory_path = config.get('DEFAULT', 'result_folder') + '/' + config.get('DEFAULT', 'result_filename')
+    
+    with open(directory_path + ".csv", "w", encoding="utf8") as messages_csv:
+        csv_writer = csv.writer(messages_csv, delimiter=config.get('csv', 'delimiter'))
         csv_writer.writerow(['id', 'timestamp', 'user', 'text'])
         for message in messages:
             csv_writer.writerow([message.id, message.ts, message.user, message.text])
