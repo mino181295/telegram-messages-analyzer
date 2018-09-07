@@ -5,3 +5,9 @@ class Message(object):
         self.ts = ts
         self.user = user
         self.text = text
+
+    def clean(self):
+        res = self.text.lower()
+        for char in '-.,\n':
+            res = self.text.replace(char,' ')
+        self.text = res

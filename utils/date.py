@@ -10,3 +10,8 @@ class DateUtility(object):
     def timestamp_to_string(timestamp, format):
         ts = dt.fromtimestamp(timestamp)
         return ts.strftime(format)
+
+    @staticmethod
+    def timestamp_to_dow(timestamp):
+        date = dt.fromtimestamp(timestamp)
+        return date.strftime('%A')
