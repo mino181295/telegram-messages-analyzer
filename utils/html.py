@@ -8,8 +8,8 @@ class HTMLUtility(object):
 
 class TelegramAdapter(object):
 
-    MESSAGE_ELEMENT = "div" 
-    MESSAGE_CLASS = "message default clearfix" 
+    MESSAGE_SELECTOR = ".message.default.clearfix" 
+    MESSAGE_JOINED_CLASS = "joined" 
 
     TIMESTAMP_ELEMENT = "div" 
     TIMESTAMP_CLASS = "pull_right date details" 

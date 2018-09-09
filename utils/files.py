@@ -1,12 +1,15 @@
 import os
+import zipfile
 
 class FileUtility(object):
  
     @staticmethod
-    def file_extension(filename):
-        if '.' in filename:
-            _, extension = os.path.splitext(filename)
-            return extension
+    def is_zipfile(path):
+        return zipfile.is_zipfile(path)
+
+    @staticmethod
+    def is_directory(path):
+        return os.path.exists(path) and os.path.isdir(path)
 
     @staticmethod
     def create_directory(directory):
